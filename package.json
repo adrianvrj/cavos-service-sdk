@@ -1,0 +1,37 @@
+{
+  "name": "cavos-service-sdk",
+  "version": "1.0.4",
+  "description": "Node.js/TypeScript SDK for cavos-wallet-provider external endpoints.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrianvrj/cavos-service-sdk.git"
+  },
+  "keywords": [
+    "cavos",
+    "wallet",
+    "sdk",
+    "starknet"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adrianvrj/cavos-service-sdk/issues"
+  },
+  "homepage": "https://github.com/adrianvrj/cavos-service-sdk#readme",
+  "dependencies": {
+    "axios": "^1.10.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
