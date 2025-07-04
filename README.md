@@ -1,6 +1,13 @@
 # Cavos Service SDK
 
-A TypeScript SDK for interacting with the Cavos wallet provider service and Auth0 organization-based authentication.
+A TypeScript/JavaScript SDK for interacting with the external endpoints of the Cavos Wallet Provider service, including user registration, authentication (Auth0), wallet management, and transaction execution.
+
+## Features
+- Register users in organizations with blockchain accounts on Starknet
+- Login users with organization-specific connection
+- Deploy and manage wallets
+- Execute transactions
+- Query wallet and transaction data
 
 ## Installation
 
@@ -8,249 +15,91 @@ A TypeScript SDK for interacting with the Cavos wallet provider service and Auth
 npm install cavos-service-sdk
 ```
 
-## Wallet Provider Functions
-
-### deployWallet
-Deploy a new wallet on the specified network.
+## Usage
 
 ```typescript
-import { deployWallet } from 'cavos-service-sdk';
+import { CavosAuth } from 'cavos-service-sdk';
 
-const result = await deployWallet('mainnet', 'your-api-key');
-```
-
-### executeAction
-Execute a transaction on the specified network.
-
-```typescript
-import { executeAction } from 'cavos-service-sdk';
-
-const result = await executeAction(
-  'mainnet',
-  [{ to: '0x...', data: '0x...' }],
-  'wallet-address',
-  'hashed-private-key',
-  'your-api-key'
-);
-```
-
-### getTransactionTransfers
-Get token transfers for a transaction hash.
-
-```typescript
-import { getTransactionTransfers } from 'cavos-service-sdk';
-
-const transfers = await getTransactionTransfers('tx-hash', 'mainnet');
-```
-
-### getWalletCounts
-Get the count of wallets for each supported network.
-
-```typescript
-import { getWalletCounts } from 'cavos-service-sdk';
-
-const counts = await getWalletCounts();
-```
-
-## Auth0 Organization Authentication
-
-All authentication methods are available as static methods on the default export `CavosAuth`:
-
-```typescript
-import CavosAuth from 'cavos-service-sdk';
-```
-
-### CavosAuth.signUp
-Create a new user in an organization and deploy a wallet for them.
-
-```typescript
-const user = await CavosAuth.signUp(
-  'user@example.com',
-  'password123',
-  'org_id_from_cavos_service',
-  'mainnet' // network (optional, default: 'sepolia')
-);
-
-// Returns:
-// {
-//   user_id: "auth0|...",
-//   email: "user@example.com",
-//   wallet: { /* wallet deployment data */ },
-//   organization: {
-//     org_id: "org_id_from_cavos_service",
-//     auth0_orgid: "org_..."
-//   }
-// }
-```
-
-### CavosAuth.signIn
-Sign in a user to an organization and get their complete data including wallet information.
-
-```typescript
-const userData = await CavosAuth.signIn(
-  'user@example.com',
-  'password123',
-  'org_id_from_cavos_service'
-);
-
-// Returns:
-// {
-//   user: {
-//     sub: "auth0|...",
-//     email: "user@example.com",
-//     access_token: "...",
-//     id_token: "...",
-//     refresh_token: "..."
-//   },
-//   wallet: {
-//     address: "0x...",
-//     public_key: "...",
-//     private_key: "...",
-//     uid: "auth0|...",
-//     // ... other wallet fields
-//   },
-//   external_wallet: {
-//     // Organization's external wallet data (if exists)
-//   },
-//   organization: {
-//     org_id: "org_id_from_cavos_service",
-//     auth0_orgid: "org_...",
-//     supabase_id: 123
-//   }
-// }
-```
-
-### CavosAuth.signOut
-Sign out a user by revoking their Auth0 access token.
-
-```typescript
-const result = await CavosAuth.signOut('user_access_token');
-
-// Returns:
-// {
-//   success: true,
-//   message: 'User signed out successfully'
-// }
-```
-
-## Usage Examples
-
-### Complete Authentication Flow
-
-```typescript
-import CavosAuth from 'cavos-service-sdk';
-
-// 1. Create a new user in an organization with wallet
-const user = await CavosAuth.signUp(
-  'user@company.com',
-  'password123',
-  'org_id_from_cavos_service',
-  'mainnet'
-);
-
-console.log('User created:', user.user_id);
-console.log('Wallet deployed:', user.wallet);
-console.log('Organization:', user.organization);
-
-// 2. Sign in user and get their data
-const userData = await CavosAuth.signIn(
-  'user@company.com',
-  'password123',
-  'org_id_from_cavos_service'
-);
-
-console.log('User signed in:', userData.user.email);
-console.log('Wallet address:', userData.wallet.address);
-console.log('Organization:', userData.organization.org_id);
-
-// 3. Logout
-const result = await CavosAuth.signOut(userData.user.access_token);
-console.log(result.message);
-```
-
-## Error Handling
-
-All functions throw descriptive errors when they fail. Handle them with try-catch:
-
-```typescript
-try {
-  const result = await CavosAuth.signUp('user@example.com', 'password', 'org_id');
-} catch (error) {
-  console.error('Sign up failed:', error.message);
-}
-```
-
-### Complete SignUp and SignIn Examples with Error Handling
-
-```typescript
-import CavosAuth from 'cavos-service-sdk';
-
-async function registerNewUser() {
-  try {
-    const user = await CavosAuth.signUp(
-      'john@company.com',
-      'securePassword123',
-      'company_org_id',
-      'sepolia'
-    );
-
-    console.log('✅ User registered successfully!');
-    console.log('User ID:', user.user_id);
-    console.log('Email:', user.email);
-    console.log('Wallet Address:', user.wallet.address);
-    console.log('Organization:', user.organization.org_id);
-
-    return user;
-  } catch (error) {
-    console.error('❌ Registration failed:', error.message);
-    
-    // Handle specific error types
-    if (error.message.includes('Organization not found')) {
-      console.error('The organization does not exist or is not configured');
-    } else if (error.message.includes('deployWallet failed')) {
-      console.error('Wallet deployment failed');
-    } else if (error.message.includes('signUp failed')) {
-      console.error('Auth0 user creation failed');
-    }
-    
-    throw error;
-  }
+// Register a new user in an organization
+async function registerUser() {
+  const orgSecret = 'ORG_SECRET_TOKEN'; // The secret token for the organization
+  const email = 'user@example.com';
+  const password = 'Password123';
+  const network = 'sepolia';
+  // Optionally, you can pass user_metadata if needed
+  const result = await CavosAuth.signUp(email, password, orgSecret, network);
+  console.log(result);
 }
 
+// Login a user in an organization
 async function loginUser() {
-  try {
-    const userData = await CavosAuth.signIn(
-      'john@company.com',
-      'securePassword123',
-      'company_org_id'
-    );
-
-    console.log('✅ User signed in successfully!');
-    console.log('User ID:', userData.user.sub);
-    console.log('Email:', userData.user.email);
-    console.log('Wallet Address:', userData.wallet.address);
-    console.log('Organization:', userData.organization.org_id);
-
-    return userData;
-  } catch (error) {
-    console.error('❌ Sign in failed:', error.message);
-    
-    // Handle specific error types
-    if (error.message.includes('Organization not found')) {
-      console.error('The organization does not exist or is not configured');
-    } else if (error.message.includes('Invalid credentials')) {
-      console.error('Email or password is incorrect');
-    } else if (error.message.includes('Wallet not found')) {
-      console.error('User wallet not found in database');
-    } else if (error.message.includes('signIn failed')) {
-      console.error('Auth0 authentication failed');
-    }
-    
-    throw error;
-  }
+  const orgSecret = 'ORG_SECRET_TOKEN';
+  const email = 'user@example.com';
+  const password = 'Password123';
+  const result = await CavosAuth.signIn(email, password, orgSecret);
+  // result.data.access_token is the Auth0 access token
+  // result.data.wallet contains the user's wallet info
+  console.log(result);
 }
+
+// Logout a user (returns the Auth0 logout URL)
+async function logoutUser(accessToken: string) {
+  const result = await CavosAuth.signOut(accessToken);
+  // Redirect the user to result.logout_url to complete Auth0 logout
+  console.log(result.logout_url);
+}
+```
+
+## API Reference
+
+### `CavosAuth.signUp(email, password, orgSecret, network = 'sepolia')`
+Registers a new user in the specified organization (using Auth0 Database Connection) and creates a wallet for them.
+- `email`: User's email
+- `password`: User's password
+- `orgSecret`: The organization's secret token (used as Bearer token)
+- `network`: Network to deploy the wallet on (default: 'sepolia')
+- Returns: User data, wallet info, and Auth0 user_id
+
+### `CavosAuth.signIn(email, password, orgSecret)`
+Logs in a user using Auth0 (Resource Owner Password Grant) for the organization's connection.
+- `email`: User's email
+- `password`: User's password
+- `orgSecret`: The organization's secret token
+- Returns: User data, wallet info, and Auth0 access_token
+
+### `CavosAuth.signOut(accessToken)`
+Returns the Auth0 logout URL for the user to complete logout.
+- `accessToken`: The Auth0 access token to be invalidated (client should remove it)
+- Returns: `{ logout_url: string }` (redirect the user to this URL)
+
+### Other Methods
+- `deployWallet(network, apiKey)` - Deploy a new wallet
+- `executeAction(network, calls, address, hashedPk, apiKey)` - Execute a transaction
+- `getTransactionTransfers(txHash, network)` - Get token transfers for a transaction
+- `getWalletCounts()` - Get the count of wallets per network
+
+## Auth0 Integration Notes
+- Each organization has its own Auth0 Database Connection (created on org registration).
+- Registration and login use the organization's connection for user isolation.
+- The SDK does not store user credentials; all authentication is handled by Auth0.
+- Logout returns the Auth0 logout URL; the client must redirect the user to this URL and remove the access token locally.
+
+## Example: Full Auth Flow
+
+```typescript
+// Register
+await CavosAuth.signUp('user@example.com', 'Password123', 'ORG_SECRET');
+
+// Login
+const loginResult = await CavosAuth.signIn('user@example.com', 'Password123', 'ORG_SECRET');
+const accessToken = loginResult.data.access_token;
+
+// Use accessToken for authenticated requests...
+
+// Logout
+const logoutResult = await CavosAuth.signOut(accessToken);
+window.location.href = logoutResult.logout_url; // Redirect to Auth0 logout
 ```
 
 ## License
-
 MIT

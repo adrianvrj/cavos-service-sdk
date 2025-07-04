@@ -1,116 +1,50 @@
 /**
  * Cavos Service SDK
  *
- * Provides functions to interact with the external endpoints of the cavos-wallet-provider service.
+ * Provides functions to interact with the external endpoints of the cavos-wallet-provider service,
+ * including Auth0-based authentication, wallet management, and transaction execution.
  *
  * @module cavos-service-sdk
  */
 
 import axios from 'axios';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-// Helper function to get Supabase client (for better testability)
-function getSupabaseClient(): SupabaseClient {
-  return createClient(
-    process.env.SUPABASE_URL || "",
-    process.env.SUPABASE_ANON_KEY || "",
-    {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false,
-      },
-    }
-  );
-}
 
 const BASE_URL = 'https://services.cavos.xyz/api/v1/external';
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 
-// Auth0 Management API functions
 /**
- * Get Auth0 Management API access token
- * @returns The access token for Auth0 Management API
+ * CavosAuth provides static methods for user registration, authentication, wallet management,
+ * and transaction execution using the Cavos Wallet Provider and Auth0.
  */
-async function getAuth0ManagementToken(): Promise<string> {
-  try {
-    const { data } = await axios.post(`https://${AUTH0_DOMAIN}/oauth/token`, {
-      grant_type: "client_credentials",
-      client_id: process.env.AUTH0_M2M_CLIENT_ID,
-      client_secret: process.env.AUTH0_M2M_CLIENT_SECRET,
-      audience: `https://${AUTH0_DOMAIN}/api/v2/`,
-    });
-    return data.access_token;
-  } catch (error: any) {
-    throw new Error(`Failed to get Auth0 management token: ${error.message}`);
-  }
-}
-
 class CavosAuth {
   /**
-   * Sign up a new user in an organization and create a wallet
+   * Register a new user in an organization (Auth0 Database Connection) and create a wallet for them.
+   *
+   * @param {string} email - The user's email address.
+   * @param {string} password - The user's password.
+   * @param {string} orgSecret - The organization's secret token (used as Bearer token).
+   * @param {string} [network='sepolia'] - The network to deploy the wallet on (default: 'sepolia').
+   * @returns {Promise<object>} The user data, wallet info, and Auth0 user_id.
+   * @throws {Error} If registration or wallet deployment fails.
    */
   static async signUp(
     email: string,
     password: string,
-    orgId: string,
+    orgSecret: string,
     network: string = 'sepolia',
   ): Promise<any> {
     try {
-      const { data: orgData, error: orgError } = await getSupabaseClient()
-        .from("org")
-        .select("auth0_orgid")
-        .eq("uid", orgId)
-        .single();
-
-      if (orgError || !orgData?.auth0_orgid) {
-        throw new Error(`Organization not found or missing auth0_orgid for org_id: ${orgId}`);
-      }
-
-      const auth0OrgId = orgData.auth0_orgid;
-      const accessToken = await getAuth0ManagementToken();
-      const { data: auth0User } = await axios.post(
-        `https://${AUTH0_DOMAIN}/api/v2/users`,
-        {
-          email,
-          password,
-          connection: 'Username-Password-Authentication',
-          app_metadata: {
-            organization_id: auth0OrgId
-          },
-          user_metadata: {
-            organization_id: auth0OrgId
-          }
-        },
+      const { data } = await axios.post(
+        `${BASE_URL}/auth/register`,
+        { email, password, network },
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${orgSecret}`,
             'Content-Type': 'application/json',
           },
         }
       );
-      await axios.post(
-        `https://${AUTH0_DOMAIN}/api/v2/organizations/${auth0OrgId}/members`,
-        {
-          members: [auth0User.user_id]
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      const walletData = await CavosAuth.deployWallet(network, orgId);
-      const userData = {
-        ...auth0User,
-        wallet: walletData,
-        organization: {
-          org_id: orgId,
-          auth0_orgid: auth0OrgId
-        }
-      };
-      return userData;
+      return data;
     } catch (error: any) {
       if (error.response) {
         throw new Error(
@@ -123,76 +57,31 @@ class CavosAuth {
   }
 
   /**
-   * Sign in a user to an organization and get their data including wallet
+   * Log in a user using Auth0 (Resource Owner Password Grant) for the organization's connection.
+   *
+   * @param {string} email - The user's email address.
+   * @param {string} password - The user's password.
+   * @param {string} orgSecret - The organization's secret token (used as Bearer token).
+   * @returns {Promise<object>} The user data, wallet info, and Auth0 access_token.
+   * @throws {Error} If authentication fails.
    */
   static async signIn(
     email: string,
     password: string,
-    orgId: string
+    orgSecret: string
   ): Promise<any> {
     try {
-      const { data: orgData, error: orgError } = await getSupabaseClient()
-        .from("org")
-        .select("auth0_orgid, id")
-        .eq("uid", orgId)
-        .single();
-      if (orgError || !orgData?.auth0_orgid) {
-        throw new Error(`Organization not found or missing auth0_orgid for org_id: ${orgId}`);
-      }
-      const auth0OrgId = orgData.auth0_orgid;
-      const orgSupabaseId = orgData.id;
-      const { data: auth0User } = await axios.post(
-        `https://${AUTH0_DOMAIN}/oauth/token`,
-        {
-          grant_type: 'password',
-          username: email,
-          password: password,
-          audience: `https://${AUTH0_DOMAIN}/api/v2/`,
-          scope: 'openid profile email',
-          client_id: process.env.AUTH0_CLIENT_ID,
-          client_secret: process.env.AUTH0_CLIENT_SECRET,
-        }
-      );
-      if (!auth0User.access_token) {
-        throw new Error('Invalid credentials');
-      }
-      const { data: userProfile } = await axios.get(
-        `https://${AUTH0_DOMAIN}/userinfo`,
+      const { data } = await axios.post(
+        `${BASE_URL}/auth/login`,
+        { email, password },
         {
           headers: {
-            Authorization: `Bearer ${auth0User.access_token}`,
+            Authorization: `Bearer ${orgSecret}`,
+            'Content-Type': 'application/json',
           },
         }
       );
-      const { data: walletData, error: walletError } = await getSupabaseClient()
-        .from("user_wallet")
-        .select("*")
-        .eq("uid", userProfile.sub)
-        .single();
-      if (walletError) {
-        throw new Error(`Wallet not found for user: ${userProfile.sub}`);
-      }
-      const { data: externalWalletData } = await getSupabaseClient()
-        .from("external_wallet")
-        .select("*")
-        .eq("org_id", orgSupabaseId)
-        .single();
-      const userData = {
-        user: {
-          ...userProfile,
-          access_token: auth0User.access_token,
-          id_token: auth0User.id_token,
-          refresh_token: auth0User.refresh_token,
-        },
-        wallet: walletData,
-        external_wallet: externalWalletData,
-        organization: {
-          org_id: orgId,
-          auth0_orgid: auth0OrgId,
-          supabase_id: orgSupabaseId
-        }
-      };
-      return userData;
+      return data;
     } catch (error: any) {
       if (error.response) {
         throw new Error(
@@ -205,19 +94,24 @@ class CavosAuth {
   }
 
   /**
-   * Sign out a user by revoking their Auth0 tokens
+   * Log out a user by returning the Auth0 logout URL for the client to redirect to.
+   *
+   * @param {string} accessToken - The Auth0 access token to be invalidated (client should remove it).
+   * @returns {Promise<object>} An object containing the logout URL (`logout_url`).
+   * @throws {Error} If the logout operation fails.
    */
   static async signOut(accessToken: string): Promise<any> {
     try {
-      await axios.post(
-        `https://${AUTH0_DOMAIN}/oauth/revoke`,
+      const { data } = await axios.post(
+        `${BASE_URL}/auth/logout`,
+        { access_token: accessToken },
         {
-          token: accessToken,
-          client_id: process.env.AUTH0_CLIENT_ID,
-          client_secret: process.env.AUTH0_CLIENT_SECRET,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
       );
-      return { success: true, message: 'User signed out successfully' };
+      return data;
     } catch (error: any) {
       if (error.response) {
         throw new Error(
@@ -231,6 +125,11 @@ class CavosAuth {
 
   /**
    * Deploy a new wallet using the cavos-wallet-provider external API.
+   *
+   * @param {string} network - The network to deploy the wallet on.
+   * @param {string} apiKey - The API key or Bearer token for authentication.
+   * @returns {Promise<object>} The wallet deployment data.
+   * @throws {Error} If wallet deployment fails.
    */
   static async deployWallet(
     network: string,
@@ -258,6 +157,14 @@ class CavosAuth {
 
   /**
    * Execute an action (transaction) using the cavos-wallet-provider external API.
+   *
+   * @param {string} network - The network to execute the transaction on.
+   * @param {any[]} calls - The transaction calls to execute.
+   * @param {string} address - The wallet address.
+   * @param {string} hashedPk - The hashed private key.
+   * @param {string} apiKey - The API key or Bearer token for authentication.
+   * @returns {Promise<object>} The transaction result.
+   * @throws {Error} If the transaction fails.
    */
   static async executeAction(
     network: string,
@@ -288,6 +195,11 @@ class CavosAuth {
 
   /**
    * Get token transfers for a given transaction hash.
+   *
+   * @param {string} txHash - The transaction hash.
+   * @param {string} [network='mainnet'] - The network to query (default: 'mainnet').
+   * @returns {Promise<object>} The token transfer data.
+   * @throws {Error} If the query fails.
    */
   static async getTransactionTransfers(
     txHash: string,
@@ -313,6 +225,9 @@ class CavosAuth {
 
   /**
    * Get the count of wallets for each supported network.
+   *
+   * @returns {Promise<object>} The wallet counts per network.
+   * @throws {Error} If the query fails.
    */
   static async getWalletCounts(): Promise<any> {
     try {
