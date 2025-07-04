@@ -42,6 +42,8 @@ async function loginUser() {
   console.log(result);
 }
 
+```
+
 ## API Reference
 
 ### `CavosAuth.signUp(email, password, orgSecret, network = 'sepolia')`
