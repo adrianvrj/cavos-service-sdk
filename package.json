@@ -38,14 +38,9 @@
   "homepage": "https://github.com/adrianvrj/cavos-service-sdk#readme",
   "dependencies": {
     "@supabase/supabase-js": "^2.50.3",
-    "axios": "^1.10.0",
-    "dotenv": "^17.0.1"
+    "axios": "^1.10.0"
   },
   "devDependencies": {
-    "@types/dotenv": "^6.1.1",
-    "@types/jest": "^30.0.0",
-    "jest": "^30.0.4",
-    "ts-jest": "^29.4.0",
     "typescript": "^5.4.5"
   },
   "publishConfig": {

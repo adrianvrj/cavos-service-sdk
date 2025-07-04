@@ -10,7 +10,6 @@
 import axios from 'axios';
 
 const BASE_URL = 'https://services.cavos.xyz/api/v1/external';
-const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 
 /**
  * CavosAuth provides static methods for user registration, authentication, wallet management,
