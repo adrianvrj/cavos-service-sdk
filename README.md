@@ -8,25 +8,6 @@ A TypeScript SDK for interacting with the Cavos wallet provider service and Auth
 npm install cavos-service-sdk
 ```
 
-## Environment Variables
-
-Create a `.env` file with the following variables:
-
-```env
-# Supabase Configuration
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Auth0 Configuration
-AUTH0_DOMAIN=your_auth0_domain.auth0.com
-AUTH0_CLIENT_ID=your_auth0_client_id
-AUTH0_CLIENT_SECRET=your_auth0_client_secret
-
-# Auth0 Machine to Machine Application (for Management API)
-AUTH0_M2M_CLIENT_ID=your_auth0_m2m_client_id
-AUTH0_M2M_CLIENT_SECRET=your_auth0_m2m_client_secret
-```
-
 ## Wallet Provider Functions
 
 ### deployWallet
@@ -86,7 +67,7 @@ Create a new user in an organization and deploy a wallet for them.
 const user = await CavosAuth.signUp(
   'user@example.com',
   'password123',
-  'org_id_from_supabase',
+  'org_id_from_cavos_service',
   'mainnet' // network (optional, default: 'sepolia')
 );
 
@@ -96,7 +77,7 @@ const user = await CavosAuth.signUp(
 //   email: "user@example.com",
 //   wallet: { /* wallet deployment data */ },
 //   organization: {
-//     org_id: "org_id_from_supabase",
+//     org_id: "org_id_from_cavos_service",
 //     auth0_orgid: "org_..."
 //   }
 // }
@@ -109,7 +90,7 @@ Sign in a user to an organization and get their complete data including wallet i
 const userData = await CavosAuth.signIn(
   'user@example.com',
   'password123',
-  'org_id_from_supabase'
+  'org_id_from_cavos_service'
 );
 
 // Returns:
@@ -132,7 +113,7 @@ const userData = await CavosAuth.signIn(
 //     // Organization's external wallet data (if exists)
 //   },
 //   organization: {
-//     org_id: "org_id_from_supabase",
+//     org_id: "org_id_from_cavos_service",
 //     auth0_orgid: "org_...",
 //     supabase_id: 123
 //   }
@@ -163,7 +144,7 @@ import CavosAuth from 'cavos-service-sdk';
 const user = await CavosAuth.signUp(
   'user@company.com',
   'password123',
-  'org_id_from_supabase',
+  'org_id_from_cavos_service',
   'mainnet'
 );
 
@@ -175,7 +156,7 @@ console.log('Organization:', user.organization);
 const userData = await CavosAuth.signIn(
   'user@company.com',
   'password123',
-  'org_id_from_supabase'
+  'org_id_from_cavos_service'
 );
 
 console.log('User signed in:', userData.user.email);
