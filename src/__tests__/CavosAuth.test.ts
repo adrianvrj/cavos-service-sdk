@@ -1,4 +1,4 @@
-import CavosAuth from '../index';
+import { CavosAuth } from '../index';
 import axios from 'axios';
 
 // Mock dependencies
