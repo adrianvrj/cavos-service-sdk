@@ -67,11 +67,6 @@ Logs in a user using Auth0 (Resource Owner Password Grant) for the organization'
 - `orgSecret`: The organization's secret token
 - Returns: User data, wallet info, and Auth0 access_token
 
-### `CavosAuth.signOut(accessToken)`
-Returns the Auth0 logout URL for the user to complete logout.
-- `accessToken`: The Auth0 access token to be invalidated (client should remove it)
-- Returns: `{ logout_url: string }` (redirect the user to this URL)
-
 ### Other Methods
 - `deployWallet(network, apiKey)` - Deploy a new wallet
 - `executeAction(network, calls, address, hashedPk, apiKey)` - Execute a transaction

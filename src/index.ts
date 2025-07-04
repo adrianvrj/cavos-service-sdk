@@ -93,36 +93,6 @@ class CavosAuth {
   }
 
   /**
-   * Log out a user by returning the Auth0 logout URL for the client to redirect to.
-   *
-   * @param {string} accessToken - The Auth0 access token to be invalidated (client should remove it).
-   * @returns {Promise<object>} An object containing the logout URL (`logout_url`).
-   * @throws {Error} If the logout operation fails.
-   */
-  static async signOut(accessToken: string): Promise<any> {
-    try {
-      const { data } = await axios.post(
-        `${BASE_URL}/auth/logout`,
-        { access_token: accessToken },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      return data;
-    } catch (error: any) {
-      if (error.response) {
-        throw new Error(
-          `signOut failed: ${error.response.status} ${JSON.stringify(error.response.data)}`
-        );
-      } else {
-        throw new Error(`signOut failed: ${error.message}`);
-      }
-    }
-  }
-
-  /**
    * Deploy a new wallet using the cavos-wallet-provider external API.
    *
    * @param {string} network - The network to deploy the wallet on.
