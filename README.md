@@ -42,14 +42,6 @@ async function loginUser() {
   console.log(result);
 }
 
-// Logout a user (returns the Auth0 logout URL)
-async function logoutUser(accessToken: string) {
-  const result = await CavosAuth.signOut(accessToken);
-  // Redirect the user to result.logout_url to complete Auth0 logout
-  console.log(result.logout_url);
-}
-```
-
 ## API Reference
 
 ### `CavosAuth.signUp(email, password, orgSecret, network = 'sepolia')`
@@ -77,24 +69,7 @@ Logs in a user using Auth0 (Resource Owner Password Grant) for the organization'
 - Each organization has its own Auth0 Database Connection (created on org registration).
 - Registration and login use the organization's connection for user isolation.
 - The SDK does not store user credentials; all authentication is handled by Auth0.
-- Logout returns the Auth0 logout URL; the client must redirect the user to this URL and remove the access token locally.
 
 ## Example: Full Auth Flow
-
-```typescript
-// Register
-await CavosAuth.signUp('user@example.com', 'Password123', 'ORG_SECRET');
-
-// Login
-const loginResult = await CavosAuth.signIn('user@example.com', 'Password123', 'ORG_SECRET');
-const accessToken = loginResult.data.access_token;
-
-// Use accessToken for authenticated requests...
-
-// Logout
-const logoutResult = await CavosAuth.signOut(accessToken);
-window.location.href = logoutResult.logout_url; // Redirect to Auth0 logout
-```
-
 ## License
 MIT
