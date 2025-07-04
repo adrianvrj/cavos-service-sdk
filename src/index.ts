@@ -161,7 +161,7 @@ export async function getWalletCounts(): Promise<any> {
   }
 }
 
-class CavosAuth {
+export class CavosAuth {
   /**
    * Sign up a new user in an organization and create a wallet
    */
@@ -344,5 +344,3 @@ class CavosAuth {
     }
   }
 }
-
-export default CavosAuth;
