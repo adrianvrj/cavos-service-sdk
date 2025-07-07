@@ -208,5 +208,3 @@ class CavosAuth {
     }
   }
 }
-
-export default CavosAuth;
