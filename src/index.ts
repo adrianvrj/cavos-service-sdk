@@ -13,7 +13,7 @@ const BASE_URL = 'https://services.cavos.xyz/api/v1/external';
  * CavosAuth provides static methods for user registration, authentication, wallet management,
  * and transaction execution using the Cavos Wallet Provider and Auth0.
  */
-class CavosAuth {
+export class CavosAuth {
   /**
    * Register a new user in an organization (Auth0 Database Connection) and create a wallet for them.
    *
