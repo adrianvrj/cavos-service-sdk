@@ -7,8 +7,6 @@
  * @module cavos-service-sdk
  */
 
-import axios from 'axios';
-
 const BASE_URL = 'https://services.cavos.xyz/api/v1/external';
 
 /**
@@ -33,25 +31,24 @@ class CavosAuth {
     network: string = 'sepolia',
   ): Promise<any> {
     try {
-      const { data } = await axios.post(
+      const res = await fetch(
         `${BASE_URL}/auth/register`,
-        { email, password, network },
         {
+          method: 'POST',
           headers: {
             Authorization: `Bearer ${orgSecret}`,
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({ email, password, network }),
         }
       );
-      return data;
-    } catch (error: any) {
-      if (error.response) {
-        throw new Error(
-          `signUp failed: ${error.response.status} ${JSON.stringify(error.response.data)}`
-        );
-      } else {
-        throw new Error(`signUp failed: ${error.message}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`signUp failed: ${res.status} ${JSON.stringify(errorData)}`);
       }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`signUp failed: ${error.message}`);
     }
   }
 
@@ -70,25 +67,24 @@ class CavosAuth {
     orgSecret: string
   ): Promise<any> {
     try {
-      const { data } = await axios.post(
+      const res = await fetch(
         `${BASE_URL}/auth/login`,
-        { email, password },
         {
+          method: 'POST',
           headers: {
             Authorization: `Bearer ${orgSecret}`,
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({ email, password }),
         }
       );
-      return data;
-    } catch (error: any) {
-      if (error.response) {
-        throw new Error(
-          `signIn failed: ${error.response.status} ${JSON.stringify(error.response.data)}`
-        );
-      } else {
-        throw new Error(`signIn failed: ${error.message}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`signIn failed: ${res.status} ${JSON.stringify(errorData)}`);
       }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`signIn failed: ${error.message}`);
     }
   }
 
@@ -104,23 +100,25 @@ class CavosAuth {
     network: string,
     apiKey: string
   ): Promise<any> {
-    const config = {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    };
-    const params = { network };
     try {
-      const { data } = await axios.post(`${BASE_URL}/deploy`, params, config);
-      return data;
-    } catch (error: any) {
-      if (error.response) {
-        throw new Error(
-          `deployWallet failed: ${error.response.status} ${JSON.stringify(error.response.data)}\nHeaders: ${JSON.stringify(error.response.headers)}`
-        );
-      } else if (error.request) {
-        throw new Error(`deployWallet failed: No response received. Request: ${error.request}`);
-      } else {
-        throw new Error(`deployWallet failed: ${error.message}`);
+      const res = await fetch(
+        `${BASE_URL}/deploy`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ network }),
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`deployWallet failed: ${res.status} ${JSON.stringify(errorData)}`);
       }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`deployWallet failed: ${error.message}`);
     }
   }
 
@@ -142,23 +140,25 @@ class CavosAuth {
     hashedPk: string,
     apiKey: string
   ): Promise<any> {
-    const config = {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    };
-    const params = { network, calls, address, hashedPk };
     try {
-      const { data } = await axios.post(`${BASE_URL}/execute`, params, config);
-      return data;
-    } catch (error: any) {
-      if (error.response) {
-        throw new Error(
-          `executeAction failed: ${error.response.status} ${JSON.stringify(error.response.data)}\nHeaders: ${JSON.stringify(error.response.headers)}`
-        );
-      } else if (error.request) {
-        throw new Error(`executeAction failed: No response received. Request: ${error.request}`);
-      } else {
-        throw new Error(`executeAction failed: ${error.message}`);
+      const res = await fetch(
+        `${BASE_URL}/execute`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ network, calls, address, hashedPk }),
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`executeAction failed: ${res.status} ${JSON.stringify(errorData)}`);
       }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`executeAction failed: ${error.message}`);
     }
   }
 
@@ -175,20 +175,17 @@ class CavosAuth {
     network: string = 'mainnet'
   ): Promise<any> {
     try {
-      const { data } = await axios.get(`${BASE_URL}/tx`, {
-        params: { txHash, network },
-      });
-      return data;
-    } catch (error: any) {
-      if (error.response) {
-        throw new Error(
-          `getTransactionTransfers failed: ${error.response.status} ${JSON.stringify(error.response.data)}\nHeaders: ${JSON.stringify(error.response.headers)}`
-        );
-      } else if (error.request) {
-        throw new Error(`getTransactionTransfers failed: No response received. Request: ${error.request}`);
-      } else {
-        throw new Error(`getTransactionTransfers failed: ${error.message}`);
+      const url = new URL(`${BASE_URL}/tx`);
+      url.searchParams.append('txHash', txHash);
+      url.searchParams.append('network', network);
+      const res = await fetch(url.toString());
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`getTransactionTransfers failed: ${res.status} ${JSON.stringify(errorData)}`);
       }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`getTransactionTransfers failed: ${error.message}`);
     }
   }
 
@@ -200,18 +197,14 @@ class CavosAuth {
    */
   static async getWalletCounts(): Promise<any> {
     try {
-      const { data } = await axios.get(`${BASE_URL}/wallets/count`);
-      return data;
-    } catch (error: any) {
-      if (error.response) {
-        throw new Error(
-          `getWalletCounts failed: ${error.response.status} ${JSON.stringify(error.response.data)}\nHeaders: ${JSON.stringify(error.response.headers)}`
-        );
-      } else if (error.request) {
-        throw new Error(`getWalletCounts failed: No response received. Request: ${error.request}`);
-      } else {
-        throw new Error(`getWalletCounts failed: ${error.message}`);
+      const res = await fetch(`${BASE_URL}/wallets/count`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`getWalletCounts failed: ${res.status} ${JSON.stringify(errorData)}`);
       }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`getWalletCounts failed: ${error.message}`);
     }
   }
 }

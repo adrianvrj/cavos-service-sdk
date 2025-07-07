@@ -36,10 +36,6 @@
     "url": "https://github.com/adrianvrj/cavos-service-sdk/issues"
   },
   "homepage": "https://github.com/adrianvrj/cavos-service-sdk#readme",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.50.3",
-    "axios": "^1.10.0"
-  },
   "devDependencies": {
     "typescript": "^5.4.5"
   },
