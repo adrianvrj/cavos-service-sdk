@@ -209,4 +209,4 @@ class CavosAuth {
   }
 }
 
-export { CavosAuth };
+export default CavosAuth;
