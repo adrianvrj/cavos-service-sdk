@@ -8,4 +8,5 @@ export default defineConfig({
   clean: true,
   target: 'esnext',
   minify: false,
+  external: ['react-native'],
 }); 
