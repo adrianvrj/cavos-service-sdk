@@ -208,3 +208,5 @@ export class CavosAuth {
     }
   }
 }
+
+export { AppleLoginButton, handleAppleCallback } from './AppleLoginButton';
