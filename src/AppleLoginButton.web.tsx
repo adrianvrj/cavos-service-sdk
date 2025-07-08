@@ -17,7 +17,7 @@ const AppleIcon = () => (
   </span>
 );
 
-export const AppleLoginButton: React.FC<AppleLoginButtonProps> = ({
+export const SignInWithApple: React.FC<AppleLoginButtonProps> = ({
   orgToken,
   network,
   finalRedirectUri,
