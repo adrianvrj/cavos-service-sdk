@@ -210,4 +210,3 @@ export class CavosAuth {
 }
 
 export { SignInWithApple } from './AppleLoginButton.web';
-export { SignInWithAppleNative } from './AppleLoginButton.native';
