@@ -4,16 +4,17 @@ import { TouchableOpacity, Text, Linking } from 'react-native';
 export type AppleLoginButtonProps = {
   orgToken: string;
   network: string;
+  finalRedirectUri: string;
   onSuccess: (user: any) => void;
   onError: (err: any) => void;
   children?: React.ReactNode;
 };
 
-export const AppleLoginButton: React.FC<AppleLoginButtonProps> = ({ orgToken, network, onSuccess, onError, children }) => {
+export const SignInWithAppleNative: React.FC<AppleLoginButtonProps> = ({ orgToken, network, finalRedirectUri, onSuccess, onError, children }) => {
   const baseUrl = "https://services.cavos.xyz";
   const handleLogin = async () => {
     try {
-      const res = await fetch(`${baseUrl}/api/v1/external/auth/apple?network=${encodeURIComponent(network)}`, {
+      const res = await fetch(`${baseUrl}/api/v1/external/auth/apple?network=${encodeURIComponent(network)}&final_redirect_uri=${encodeURIComponent(finalRedirectUri)}`, {
         headers: { Authorization: `Bearer ${orgToken}` },
       });
       if (!res.ok) throw new Error('Failed to get Apple login URL');
