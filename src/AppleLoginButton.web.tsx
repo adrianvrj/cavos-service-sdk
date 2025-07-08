@@ -4,8 +4,6 @@ export type AppleLoginButtonProps = {
   orgToken: string;
   network: string;
   finalRedirectUri: string;
-  onSuccess: (user: any) => void;
-  onError: (err: any) => void;
   children?: React.ReactNode;
 };
 
@@ -21,8 +19,6 @@ export const SignInWithApple: React.FC<AppleLoginButtonProps> = ({
   orgToken,
   network,
   finalRedirectUri,
-  onSuccess,
-  onError,
   children
 }) => {
   const baseUrl = "https://services.cavos.xyz";
@@ -37,7 +33,7 @@ export const SignInWithApple: React.FC<AppleLoginButtonProps> = ({
       const url = data.url;
       window.location.href = url;
     } catch (err) {
-      onError(err);
+      return err;
     }
   };
 
