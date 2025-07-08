@@ -8,6 +8,7 @@ A TypeScript/JavaScript SDK for interacting with the external endpoints of the C
 - Deploy and manage wallets
 - Execute transactions
 - Query wallet and transaction data
+- **Sign in with Apple** (web component)
 
 ## Installation
 
@@ -16,6 +17,8 @@ npm install cavos-service-sdk
 ```
 
 ## Usage
+
+### Auth API
 
 ```typescript
 import { CavosAuth } from 'cavos-service-sdk';
@@ -26,7 +29,6 @@ async function registerUser() {
   const email = 'user@example.com';
   const password = 'Password123';
   const network = 'sepolia';
-  // Optionally, you can pass user_metadata if needed
   const result = await CavosAuth.signUp(email, password, orgSecret, network);
   console.log(result);
 }
@@ -37,11 +39,38 @@ async function loginUser() {
   const email = 'user@example.com';
   const password = 'Password123';
   const result = await CavosAuth.signIn(email, password, orgSecret);
-  // result.data.access_token is the Auth0 access token
-  // result.data.wallet contains the user's wallet info
   console.log(result);
 }
+```
 
+### Sign in with Apple (Web)
+
+```tsx
+import { SignInWithApple } from 'cavos-service-sdk';
+
+<SignInWithApple
+  orgToken={"ORG_SECRET_TOKEN"}
+  network={"sepolia"}
+  finalRedirectUri={"https://your-frontend.com/callback"}
+>
+  Sign in with Apple
+</SignInWithApple>
+```
+
+- `orgToken`: The organization's secret token (Bearer token)
+- `network`: Network to use (e.g., 'sepolia', 'mainnet')
+- `finalRedirectUri`: The URL to which the user will be redirected after successful login (should be handled by your frontend)
+- `children`: (optional) Custom button content
+
+**Note:** The user data will be returned to your `finalRedirectUri` as a query param `user_data` (URI-encoded JSON). You can parse it in your frontend:
+
+```js
+const params = new URLSearchParams(window.location.search);
+const userDataStr = params.get('user_data');
+if (userDataStr) {
+  const userData = JSON.parse(decodeURIComponent(userDataStr));
+  // userData = { user_id, email, wallet, created_at }
+}
 ```
 
 ## API Reference
@@ -72,6 +101,5 @@ Logs in a user using Auth0 (Resource Owner Password Grant) for the organization'
 - Registration and login use the organization's connection for user isolation.
 - The SDK does not store user credentials; all authentication is handled by Auth0.
 
-## Example: Full Auth Flow
 ## License
 MIT
