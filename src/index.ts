@@ -209,4 +209,4 @@ export class CavosAuth {
   }
 }
 
-export * from './AppleLoginButton';
+export { AppleLoginButton } from './AppleLoginButton.web';
