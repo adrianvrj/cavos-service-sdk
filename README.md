@@ -90,6 +90,12 @@ Logs in a user using Auth0 (Resource Owner Password Grant) for the organization'
 - `orgSecret`: The organization's secret token
 - Returns: User data, wallet info, and Auth0 access_token
 
+### `CavosAuth.refreshToken(refreshToken, orgSecret)`
+Refreshes an Auth0 access token using a refresh token.
+- `refreshToken`: The refresh token from a previous authentication
+- `orgSecret`: The organization's secret token
+- Returns: User data, wallet info, and new Auth0 access_token
+
 ### Other Methods
 - `deployWallet(network, apiKey)` - Deploy a new wallet
 - `executeAction(network, calls, address, hashedPk, apiKey)` - Execute a transaction
@@ -100,6 +106,59 @@ Logs in a user using Auth0 (Resource Owner Password Grant) for the organization'
 - Each organization has its own Auth0 Database Connection (created on org registration).
 - Registration and login use the organization's connection for user isolation.
 - The SDK does not store user credentials; all authentication is handled by Auth0.
+
+## Token Management Example
+
+```javascript
+// Store tokens securely in your app
+let accessToken = null;
+let refreshToken = null;
+let tokenExpiry = null;
+
+// After successful login/signup
+function handleAuthSuccess(authData) {
+  accessToken = authData.data.access_token;
+  refreshToken = authData.data.refresh_token;
+  tokenExpiry = Date.now() + (authData.data.expires_in * 1000);
+  
+  // Store tokens securely (e.g., in encrypted storage)
+  storeTokensSecurely(accessToken, refreshToken, tokenExpiry);
+}
+
+// Check if token needs refresh
+function isTokenExpired() {
+  return Date.now() >= tokenExpiry;
+}
+
+// Refresh token when needed
+async function refreshTokenIfNeeded() {
+  if (isTokenExpired() && refreshToken) {
+    try {
+      const authData = await CavosAuth.refreshToken(refreshToken, orgSecret);
+      handleAuthSuccess(authData);
+      return authData.data.access_token;
+    } catch (error) {
+      // Token refresh failed, user needs to login again
+      console.error('Token refresh failed:', error);
+      // Redirect to login
+      return null;
+    }
+  }
+  return accessToken;
+}
+
+// Use this before making API calls
+async function makeAuthenticatedRequest() {
+  const token = await refreshTokenIfNeeded();
+  if (!token) {
+    // Handle authentication failure
+    return;
+  }
+  
+  // Make your API call with the valid token
+  // ...
+}
+```
 
 ## License
 MIT
