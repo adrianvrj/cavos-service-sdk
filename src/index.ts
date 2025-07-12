@@ -89,6 +89,40 @@ export class CavosAuth {
   }
 
   /**
+   * Refresh an Auth0 access token using a refresh token.
+   *
+   * @param {string} refreshToken - The refresh token from a previous authentication.
+   * @param {string} orgSecret - The organization's secret token (used as Bearer token).
+   * @returns {Promise<object>} The user data, wallet info, and new Auth0 access_token.
+   * @throws {Error} If token refresh fails.
+   */
+  static async refreshToken(
+    refreshToken: string,
+    orgSecret: string
+  ): Promise<any> {
+    try {
+      const res = await fetch(
+        `${BASE_URL}/auth/refresh`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${orgSecret}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`refreshToken failed: ${res.status} ${JSON.stringify(errorData)}`);
+      }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`refreshToken failed: ${error.message}`);
+    }
+  }
+
+  /**
    * Deploy a new wallet using the cavos-wallet-provider external API.
    *
    * @param {string} network - The network to deploy the wallet on.
@@ -205,6 +239,40 @@ export class CavosAuth {
       return await res.json();
     } catch (error: any) {
       throw new Error(`getWalletCounts failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete a user from an organization.
+   *
+   * @param {string} user_id - The Auth0 user_id (e.g., 'auth0|...', 'google-oauth2|...', 'apple|...').
+   * @param {string} orgSecret - The organization's secret token.
+   * @returns {Promise<object>} The deletion result.
+   * @throws {Error} If deletion fails.
+   */
+  static async deleteUser(
+    user_id: string,
+    orgSecret: string
+  ): Promise<any> {
+    try {
+      const res = await fetch(
+        `${BASE_URL}/orgs/users`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${orgSecret}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ user_id }),
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`deleteUser failed: ${res.status} ${JSON.stringify(errorData)}`);
+      }
+      return await res.json();
+    } catch (error: any) {
+      throw new Error(`deleteUser failed: ${error.message}`);
     }
   }
 }
