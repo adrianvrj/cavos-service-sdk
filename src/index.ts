@@ -277,4 +277,29 @@ export class CavosAuth {
   }
 }
 
+/**
+ * Format an amount into Uint256 using the cavos-wallet-provider external API.
+ *
+ * @param {string | number} amount - The amount to format.
+ * @param {number} [decimals=18] - The number of decimals (default: 18).
+ * @returns {Promise<{ uint256: { low: string, high: string } }>} The formatted Uint256 object.
+ * @throws {Error} If the formatting fails.
+ */
+export async function formatAmount(amount: string | number, decimals: number = 18): Promise<{ uint256: { low: string, high: string } }> {
+  try {
+    const res = await fetch(`${BASE_URL}/format`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, decimals }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(`formatAmount failed: ${res.status} ${JSON.stringify(errorData)}`);
+    }
+    return await res.json();
+  } catch (error: any) {
+    throw new Error(`formatAmount failed: ${error.message}`);
+  }
+}
+
 export { SignInWithApple } from './AppleLoginButton.web';
