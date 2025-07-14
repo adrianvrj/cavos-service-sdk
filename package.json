@@ -1,6 +1,6 @@
 {
   "name": "cavos-service-sdk",
-  "version": "1.2.15",
+  "version": "1.2.16",
   "description": "Node.js/TypeScript SDK for cavos-wallet-provider external endpoints.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
